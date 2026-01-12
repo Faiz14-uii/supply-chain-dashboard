@@ -127,16 +127,36 @@ def load_data():
         st.stop()
 
     df = pd.read_csv('dashboard_ready.csv')
-    df['order_date'] = pd.to_datetime(df['order_date'])
+    # Parse order_date dengan error handling
+    df['order_date'] = pd.to_datetime(df['order_date'], errors='coerce')
+    if df['order_date'].isnull().any():
+        st.warning(f"Ada {df['order_date'].isnull().sum()} baris order_date yang gagal diparse. Baris tersebut akan diabaikan.")
+        df = df.dropna(subset=['order_date'])
 
     supplier_clusters = pd.read_csv('supplier_clusters.csv')
+    # Jika ada kolom tanggal, parse dengan error handling
+    if 'date' in supplier_clusters.columns:
+        supplier_clusters['date'] = pd.to_datetime(supplier_clusters['date'], errors='coerce')
+        if supplier_clusters['date'].isnull().any():
+            st.warning(f"Ada {supplier_clusters['date'].isnull().sum()} baris date di supplier_clusters yang gagal diparse. Baris tersebut akan diabaikan.")
+            supplier_clusters = supplier_clusters.dropna(subset=['date'])
 
     # Load time series forecast
     forecast_df = pd.read_csv('time_series_forecast_arima.csv')
-    forecast_df['date'] = pd.to_datetime(forecast_df['date'])
+    # Parse date dengan error handling
+    forecast_df['date'] = pd.to_datetime(forecast_df['date'], errors='coerce')
+    if forecast_df['date'].isnull().any():
+        st.warning(f"Ada {forecast_df['date'].isnull().sum()} baris date di forecast yang gagal diparse. Baris tersebut akan diabaikan.")
+        forecast_df = forecast_df.dropna(subset=['date'])
 
     # Load cluster features
     cluster_features = pd.read_csv('supplier_cluster_features.csv')
+    # Jika ada kolom tanggal, parse dengan error handling
+    if 'date' in cluster_features.columns:
+        cluster_features['date'] = pd.to_datetime(cluster_features['date'], errors='coerce')
+        if cluster_features['date'].isnull().any():
+            st.warning(f"Ada {cluster_features['date'].isnull().sum()} baris date di supplier_cluster_features yang gagal diparse. Baris tersebut akan diabaikan.")
+            cluster_features = cluster_features.dropna(subset=['date'])
     return df, supplier_clusters, forecast_df, cluster_features, datetime.now()
 
 df, supplier_clusters, forecast_df, cluster_features, last_update = load_data()
@@ -192,7 +212,7 @@ if selected_transport != 'All':
 
 # ==================== HEADER ====================
 st.markdown("<h1>📦 Supply Chain Performance Dashboard</h1>", unsafe_allow_html=True)
-st.markdown("<p class='subtitle'>Real-time insights for operational excellence</p>", unsafe_allow_html=True)
+st.markdown("<p class='subtitle'>Project UAS Bussines Intelligence: Dashboard ini dibuat untuk mendukung analisis data supply chain, visualisasi performa, dan pengambilan keputusan berbasis data secara komprehensif.</p>", unsafe_allow_html=True)
 
 st.markdown("---")
 
@@ -387,7 +407,7 @@ with col1:
         plot_bgcolor='rgba(42, 82, 152, 0.3)',
         paper_bgcolor='rgba(42, 82, 152, 0.3)',
         font=dict(color='#ffffff', size=13),
-        xaxis=dict(showgrid=False, title="Minggu", tickangle=0, tickfont=dict(size=11)),
+        xaxis=dict(showgrid=False, title="Minggu", tickangle=45, tickfont=dict(size=11, family='Arial', style='italic')),
         yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title=dict(text="Waktu Kirim (hari)", font=dict(size=13))),
         yaxis2=dict(showgrid=False, title=dict(text="Biaya ($)", font=dict(size=13))),
         legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5, font=dict(size=12)),
@@ -763,88 +783,6 @@ for idx, row in perf_scores.iterrows():
     </div>
     """, unsafe_allow_html=True)
 # ==================== TIME SERIES FORECAST ====================
-st.markdown("### 📈 Prediksi Revenue (ARIMA Model)")
-st.markdown("<p style='color: #b8d4f1; font-size: 14px;'>Forecast 4 minggu ke depan berdasarkan analisis time series</p>", unsafe_allow_html=True)
-
-# Show only last 12 weeks actual + forecast
-forecast_recent = forecast_df.tail(16)
-
-fig_forecast = go.Figure()
-
-# Actual data
-# Replace 'actual' with the correct column name from your CSV, e.g. 'revenue_generated' or 'revenue'
-actual_col = None
-for col in ['revenue_generated', 'revenue', 'actual']:
-    if col in forecast_recent.columns:
-        actual_col = col
-        break
-if actual_col:
-    actual_data = forecast_recent[forecast_recent[actual_col] > 0]
-    fig_forecast.add_trace(go.Scatter(
-        x=actual_data['date'],
-        y=actual_data[actual_col],
-        name='Actual Revenue',
-        mode='lines+markers',
-        line=dict(color='#64b5f6', width=3),
-        marker=dict(size=8),
-        hovertemplate='<b>%{x|%Y-%m-%d}</b><br>Actual: $%{y:,.0f}<extra></extra>'
-    ))
-else:
-    st.warning("Kolom 'actual', 'revenue_generated', atau 'revenue' tidak ditemukan di data forecast.")
-
-# Forecast data
-forecast_col = None
-for col in ['forecast', 'revenue_forecast']:
-    if col in forecast_recent.columns:
-        forecast_col = col
-        break
-if forecast_col:
-    fig_forecast.add_trace(go.Scatter(
-        x=forecast_recent['date'],
-        y=forecast_recent[forecast_col],
-        name='Forecast',
-        mode='lines+markers',
-        line=dict(color='#ffb74d', width=3, dash='dash'),
-        marker=dict(size=8, symbol='diamond'),
-        hovertemplate='<b>%{x|%Y-%m-%d}</b><br>Forecast: $%{y:,.0f}<extra></extra>'
-    ))
-else:
-    st.warning("Kolom 'forecast' atau 'revenue_forecast' tidak ditemukan di data forecast.")
-
-# Confidence interval
-if 'upper_95' in forecast_recent.columns and 'lower_95' in forecast_recent.columns:
-    fig_forecast.add_trace(go.Scatter(
-        x=forecast_recent['date'],
-        y=forecast_recent['upper_95'],
-        mode='lines',
-        line=dict(width=0),
-        showlegend=False,
-        hoverinfo='skip'
-    ))
-    fig_forecast.add_trace(go.Scatter(
-        x=forecast_recent['date'],
-        y=forecast_recent['lower_95'],
-        mode='lines',
-        line=dict(width=0),
-        fillcolor='rgba(255, 183, 77, 0.2)',
-        fill='tonexty',
-        name='95% Confidence',
-        hovertemplate='Confidence Interval<extra></extra>'
-    ))
-
-fig_forecast.update_layout(
-    height=380,
-    plot_bgcolor='rgba(42, 82, 152, 0.3)',
-    paper_bgcolor='rgba(42, 82, 152, 0.3)',
-    font=dict(color='#ffffff', size=13),
-    xaxis=dict(showgrid=False, title="Tanggal", tickangle=45, tickfont=dict(size=11)),
-    yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title=dict(text="Revenue ($)", font=dict(size=14))),
-    legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5, font=dict(size=12)),
-    margin=dict(l=60, r=50, t=60, b=80)
-)
-
-st.plotly_chart(fig_forecast, width='stretch')
-
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ==================== CLUSTER PROFILING ====================
