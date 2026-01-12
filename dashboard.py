@@ -772,48 +772,65 @@ forecast_recent = forecast_df.tail(16)
 fig_forecast = go.Figure()
 
 # Actual data
-actual_data = forecast_recent[forecast_recent['actual'] > 0]
-fig_forecast.add_trace(go.Scatter(
-    x=actual_data['date'],
-    y=actual_data['actual'],
-    name='Actual Revenue',
-    mode='lines+markers',
-    line=dict(color='#64b5f6', width=3),
-    marker=dict(size=8),
-    hovertemplate='<b>%{x|%Y-%m-%d}</b><br>Actual: $%{y:,.0f}<extra></extra>'
-))
+# Replace 'actual' with the correct column name from your CSV, e.g. 'revenue_generated' or 'revenue'
+actual_col = None
+for col in ['revenue_generated', 'revenue', 'actual']:
+    if col in forecast_recent.columns:
+        actual_col = col
+        break
+if actual_col:
+    actual_data = forecast_recent[forecast_recent[actual_col] > 0]
+    fig_forecast.add_trace(go.Scatter(
+        x=actual_data['date'],
+        y=actual_data[actual_col],
+        name='Actual Revenue',
+        mode='lines+markers',
+        line=dict(color='#64b5f6', width=3),
+        marker=dict(size=8),
+        hovertemplate='<b>%{x|%Y-%m-%d}</b><br>Actual: $%{y:,.0f}<extra></extra>'
+    ))
+else:
+    st.warning("Kolom 'actual', 'revenue_generated', atau 'revenue' tidak ditemukan di data forecast.")
 
 # Forecast data
-fig_forecast.add_trace(go.Scatter(
-    x=forecast_recent['date'],
-    y=forecast_recent['forecast'],
-    name='Forecast',
-    mode='lines+markers',
-    line=dict(color='#ffb74d', width=3, dash='dash'),
-    marker=dict(size=8, symbol='diamond'),
-    hovertemplate='<b>%{x|%Y-%m-%d}</b><br>Forecast: $%{y:,.0f}<extra></extra>'
-))
+forecast_col = None
+for col in ['forecast', 'revenue_forecast']:
+    if col in forecast_recent.columns:
+        forecast_col = col
+        break
+if forecast_col:
+    fig_forecast.add_trace(go.Scatter(
+        x=forecast_recent['date'],
+        y=forecast_recent[forecast_col],
+        name='Forecast',
+        mode='lines+markers',
+        line=dict(color='#ffb74d', width=3, dash='dash'),
+        marker=dict(size=8, symbol='diamond'),
+        hovertemplate='<b>%{x|%Y-%m-%d}</b><br>Forecast: $%{y:,.0f}<extra></extra>'
+    ))
+else:
+    st.warning("Kolom 'forecast' atau 'revenue_forecast' tidak ditemukan di data forecast.")
 
 # Confidence interval
-fig_forecast.add_trace(go.Scatter(
-    x=forecast_recent['date'],
-    y=forecast_recent['upper_95'],
-    mode='lines',
-    line=dict(width=0),
-    showlegend=False,
-    hoverinfo='skip'
-))
-
-fig_forecast.add_trace(go.Scatter(
-    x=forecast_recent['date'],
-    y=forecast_recent['lower_95'],
-    mode='lines',
-    line=dict(width=0),
-    fillcolor='rgba(255, 183, 77, 0.2)',
-    fill='tonexty',
-    name='95% Confidence',
-    hovertemplate='Confidence Interval<extra></extra>'
-))
+if 'upper_95' in forecast_recent.columns and 'lower_95' in forecast_recent.columns:
+    fig_forecast.add_trace(go.Scatter(
+        x=forecast_recent['date'],
+        y=forecast_recent['upper_95'],
+        mode='lines',
+        line=dict(width=0),
+        showlegend=False,
+        hoverinfo='skip'
+    ))
+    fig_forecast.add_trace(go.Scatter(
+        x=forecast_recent['date'],
+        y=forecast_recent['lower_95'],
+        mode='lines',
+        line=dict(width=0),
+        fillcolor='rgba(255, 183, 77, 0.2)',
+        fill='tonexty',
+        name='95% Confidence',
+        hovertemplate='Confidence Interval<extra></extra>'
+    ))
 
 fig_forecast.update_layout(
     height=380,
@@ -826,7 +843,7 @@ fig_forecast.update_layout(
     margin=dict(l=60, r=50, t=60, b=80)
 )
 
-st.plotly_chart(fig_forecast, use_container_width=True)
+st.plotly_chart(fig_forecast, width='stretch')
 
 st.markdown("<br>", unsafe_allow_html=True)
 
