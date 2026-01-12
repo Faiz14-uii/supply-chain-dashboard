@@ -116,27 +116,27 @@ def load_data():
     """Load all data files - refreshes every 5 minutes"""
     # Check all required files
     required_files = [
-        'outputs/dashboard_ready.csv',
-        'outputs/supplier_clusters.csv',
-        'outputs/time_series_forecast_arima.csv',
-        'outputs/supplier_cluster_features.csv'
+        'dashboard_ready.csv',
+        'supplier_clusters.csv',
+        'time_series_forecast_arima.csv',
+        'supplier_cluster_features.csv'
     ]
     missing = [f for f in required_files if not os.path.exists(f)]
     if missing:
         st.error(f"File berikut tidak ditemukan: {', '.join(missing)}.\n\nPastikan file sudah ada di GitHub dan path benar.")
         st.stop()
 
-    df = pd.read_csv('outputs/dashboard_ready.csv')
+    df = pd.read_csv('dashboard_ready.csv')
     df['order_date'] = pd.to_datetime(df['order_date'])
 
-    supplier_clusters = pd.read_csv('outputs/supplier_clusters.csv')
+    supplier_clusters = pd.read_csv('supplier_clusters.csv')
 
     # Load time series forecast
-    forecast_df = pd.read_csv('outputs/time_series_forecast_arima.csv')
+    forecast_df = pd.read_csv('time_series_forecast_arima.csv')
     forecast_df['date'] = pd.to_datetime(forecast_df['date'])
 
     # Load cluster features
-    cluster_features = pd.read_csv('outputs/supplier_cluster_features.csv')
+    cluster_features = pd.read_csv('supplier_cluster_features.csv')
 
     return df, supplier_clusters, forecast_df, cluster_features, datetime.now()
 
@@ -1078,3 +1078,4 @@ st.markdown(
     "</p>",
     unsafe_allow_html=True
 )
+
