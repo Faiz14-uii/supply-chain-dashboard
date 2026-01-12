@@ -588,9 +588,9 @@ with col1:
 with col2:
     st.markdown("### 📊 Volume Penjualan Per Jenis Produk")
     product_volume = filtered_df.groupby('product_type').agg({
-        'number_of_products_sold': 'sum',
+        'order_quantity': 'sum',
         'revenue_generated': 'sum'
-    }).reset_index().sort_values('number_of_products_sold', ascending=False)
+    }).reset_index().sort_values('order_quantity', ascending=False)
     
     fig_product = go.Figure()
     
@@ -1078,4 +1078,5 @@ st.markdown(
     "</p>",
     unsafe_allow_html=True
 )
+
 
