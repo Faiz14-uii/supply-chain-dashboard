@@ -1,0 +1,4 @@
+cluster,label,lead_time_avg,defect_rate_avg,costs_total,n_suppliers,recommendation
+0,⚠️  Budget with Quality Issues,18.91,2.5,9337.0,3,Implement quality control or find alternatives
+1,⚠️  Budget with Quality Issues,15.22,2.34,9392.59,1,Implement quality control or find alternatives
+2,"💰 High Performance, High Cost",14.78,1.8,15520.98,1,"Negotiate cost, maintain quality standard"

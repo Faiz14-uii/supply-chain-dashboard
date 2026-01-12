@@ -1,0 +1,6 @@
+supplier_name,lead_time_avg,defect_rate_avg,costs_total,cluster,cluster_label
+Supplier 1,14.777777777777779,1.8036297116882527,15520.980745467823,2,"💰 High Performance, High Cost"
+Supplier 2,18.545454545454547,2.3627501450718813,11330.599297914963,0,⚠️  Budget with Quality Issues
+Supplier 3,20.133333333333333,2.46578603076447,7032.001523022524,0,⚠️  Budget with Quality Issues
+Supplier 4,15.222222222222221,2.3373974005913394,9392.587517311269,1,⚠️  Budget with Quality Issues
+Supplier 5,18.055555555555557,2.665408344149201,9648.409132097531,0,⚠️  Budget with Quality Issues
