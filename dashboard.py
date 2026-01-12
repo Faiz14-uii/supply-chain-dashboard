@@ -137,7 +137,6 @@ def load_data():
 
     # Load cluster features
     cluster_features = pd.read_csv('supplier_cluster_features.csv')
-
     return df, supplier_clusters, forecast_df, cluster_features, datetime.now()
 
 df, supplier_clusters, forecast_df, cluster_features, last_update = load_data()
@@ -629,8 +628,8 @@ with col1:
     st.markdown("### 💵 Cost Breakdown by Supplier")
     supplier_cost_detail = filtered_df.groupby('supplier_name').agg({
         'costs': 'sum',
-        'shipping_costs': 'sum',
-        'manufacturing_costs': 'sum'
+        'shipping_cost': 'sum',
+        'costs': 'sum'
     }).sort_values('costs', ascending=False).head(8)
     
     fig_supplier_cost = go.Figure()
@@ -649,7 +648,7 @@ with col1:
     fig_supplier_cost.add_trace(go.Bar(
         name='Shipping Cost',
         y=supplier_cost_detail.index,
-        x=supplier_cost_detail['shipping_costs'],
+        x=supplier_cost_detail['shipping_cost'],
         orientation='h',
         marker=dict(color='#81c784'),
         hovertemplate='Shipping: $%{x:,.2f}<extra></extra>'
@@ -658,7 +657,7 @@ with col1:
     fig_supplier_cost.add_trace(go.Bar(
         name='Manufacturing Cost',
         y=supplier_cost_detail.index,
-        x=supplier_cost_detail['manufacturing_costs'],
+        x=supplier_cost_detail['costs'],
         orientation='h',
         marker=dict(color='#ffb74d'),
         hovertemplate='Manufacturing: $%{x:,.2f}<extra></extra>'
@@ -1078,4 +1077,3 @@ st.markdown(
     "</p>",
     unsafe_allow_html=True
 )
-
